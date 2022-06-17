@@ -117,8 +117,15 @@ class MobileBaseSDK:
         )
         self._stub.SendGoTo(req)
 
-    def distance_to_go_to(self):
-        return
+    def _distance_to_go_to_goal(self):
+        response = self._stub.DistanceToGoal(Empty())
+        distance = {
+            'delta_x': round(response.delta_x.value, 3),
+            'delta_y': round(response.delta_y.value, 3),
+            'delta_theta': round(response.delta_theta.value, 3),
+            'distance': round(response.distance.value, 3),
+        }
+        return distance
 
     def emergency_shutdown(self):
         self.drive_mode = 'emergency_stop'
