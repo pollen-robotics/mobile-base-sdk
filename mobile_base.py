@@ -96,18 +96,18 @@ class MobileBaseSDK:
         if not duration:
             req = mp_pb2.TargetDirectionCommand(
                 direction=mp_pb2.DirectionVector(
-                    x=x_vel,
-                    y=y_vel,
-                    theta=rot_vel,
+                    x=FloatValue(value=x_vel),
+                    y=FloatValue(value=y_vel),
+                    theta=FloatValue(value=rot_vel),
                 )
             )
             self._stub.SendDirection(req)
         else:
             req = mp_pb2.SetSpeedVector(
-                duration=duration,
-                x_vel=x_vel,
-                y_vel=y_vel,
-                rot_vel=rot_vel,
+                duration=FloatValue(value=duration),
+                x_vel=FloatValue(value=x_vel),
+                y_vel=FloatValue(value=y_vel),
+                rot_vel=FloatValue(value=rot_vel),
             )
             self._stub.SendSetSpeed(req)
 
