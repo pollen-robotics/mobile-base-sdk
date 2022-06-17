@@ -85,7 +85,7 @@ class MobileBaseSDK:
             req = mp_pb2.ControlModeCommand(
                 mode=getattr(mp_pb2.ControlModePossiblities, mode.upper())
             )
-            self._stub.SetZuuuMode(req)
+            self._stub.SetControlMode(req)
         else:
             print(f'Drive mode requested should be in {possible_control_modes}!')
 
