@@ -1,28 +1,12 @@
 """."""
-from enum import Enum
+from matplotlib.pyplot import get
 from numpy import round
 
 import grpc
 from google.protobuf.empty_pb2 import Empty
-from google.protobuf.wrappers_pb2 import BoolValue, FloatValue
+from google.protobuf.wrappers_pb2 import FloatValue
 
 from reachy_sdk_api import mobile_platform_reachy_pb2 as mp_pb2, mobile_platform_reachy_pb2_grpc as mp_pb2_grpc
-
-
-# class DriveMode(Enum):
-#     NONE_ZUUU_MODE = 0
-#     CMD_VEL = 1
-#     BRAKE = 2
-#     FREE_WHEEL = 3
-#     SPEED = 4
-#     GOTO = 5
-#     EMERGENCY_STOP = 6
-
-
-# class ControlMode(Enum):
-#     NONE_CONTROL_MODE = mp_pb2.ControlModePossiblities.NONE_CONTROL_MODE
-#     OPEN_LOOP = mp_pb2.ControlModePossiblities.OPEN_LOOP
-#     PID = mp_pb2.ControlModePossiblities.PID
 
 
 class MobileBaseSDK:
@@ -35,6 +19,17 @@ class MobileBaseSDK:
 
         self._stub = mp_pb2_grpc.MobilityServiceStub(self._grpc_channel)
         self._presence_stub = mp_pb2_grpc.MobileBasePresenceServiceStub(self._grpc_channel)
+
+        def get_drive_mode():
+            mode_id = self._stub.GetZuuuMode(Empty()).mode
+            return mp_pb2.ZuuuModePossiblities.keys()[mode_id]
+
+        def get_control_mode():
+            mode_id = self._stub.GetControlMode(Empty()).mode
+            return mp_pb2.ControlModePossiblities.keys()[mode_id]
+
+        self._drive_mode = get_drive_mode()
+        self._control_mode = get_control_mode()
 
     def __repr__(self) -> str:
         pass
@@ -59,8 +54,7 @@ class MobileBaseSDK:
 
     @property
     def drive_mode(self):
-        mode_id = self._stub.GetZuuuMode(Empty()).mode
-        return mp_pb2.ZuuuModePossiblities.keys()[mode_id]
+        return self._drive_mode
 
     @drive_mode.setter
     def drive_mode(self, mode: str):
@@ -70,13 +64,13 @@ class MobileBaseSDK:
                 mode=getattr(mp_pb2.ZuuuModePossiblities, mode.upper())
             )
             self._stub.SetZuuuMode(req)
+            self._drive_mode = mode
         else:
             print(f'Drive mode requested should be in {possible_drive_modes}!')
 
     @property
     def control_mode(self):
-        mode_id = self._stub.GetControlMode(Empty()).mode
-        return mp_pb2.ControlModePossiblities.keys()[mode_id]
+        return self._control_mode
 
     @control_mode.setter
     def control_mode(self, mode: str):
@@ -86,6 +80,7 @@ class MobileBaseSDK:
                 mode=getattr(mp_pb2.ControlModePossiblities, mode.upper())
             )
             self._stub.SetControlMode(req)
+            self._control_mode = mode
         else:
             print(f'Drive mode requested should be in {possible_control_modes}!')
 
@@ -94,6 +89,9 @@ class MobileBaseSDK:
 
     def set_speed(self, x_vel: float, y_vel: float, rot_vel: float, duration: float):
         if not duration:
+            if self.drive_mode != 'cmd_vel':
+                self.drive_mode = 'cmd_vel'
+
             req = mp_pb2.TargetDirectionCommand(
                 direction=mp_pb2.DirectionVector(
                     x=FloatValue(value=x_vel),
