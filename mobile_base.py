@@ -59,7 +59,8 @@ class MobileBaseSDK:
 
     @property
     def drive_mode(self):
-        return
+        mode_id = self._stub.GetZuuuMode(Empty()).mode
+        return mp_pb2.ZuuuModePossiblities.keys()[mode_id]
 
     @drive_mode.setter
     def drive_mode(self, mode: str):
@@ -74,7 +75,8 @@ class MobileBaseSDK:
 
     @property
     def control_mode(self):
-        return
+        mode_id = self._stub.GetControlMode(Empty()).mode
+        return mp_pb2.ControlModePossiblities.keys()[mode_id]
 
     @control_mode.setter
     def control_mode(self, mode: str):
