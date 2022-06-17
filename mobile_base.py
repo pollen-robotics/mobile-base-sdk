@@ -1,5 +1,6 @@
 """."""
 from enum import Enum
+from numpy import round
 
 import grpc
 from google.protobuf.empty_pb2 import Empty
@@ -35,14 +36,16 @@ class MobileBaseSDK:
         self._stub = mp_pb2_grpc.MobilityServiceStub(self._grpc_channel)
         self._presence_stub = mp_pb2_grpc.MobileBasePresenceServiceStub(self._grpc_channel)
 
-        self.battery_level = 0.0
-
     def __repr__(self) -> str:
         pass
 
     @property
     def model_version(self):
         return self._presence_stub.GetMobileBasePresence(Empty()).model_version.value
+
+    @property
+    def battery_level(self):
+        return round(self._stub.GetBatteryLevel(Empty()).level.value, 1)
 
     @property
     def odometry(self):
