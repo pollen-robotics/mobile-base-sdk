@@ -64,7 +64,7 @@ class MobileBaseSDK:
 
     @drive_mode.setter
     def drive_mode(self, mode: str):
-        possible_drive_modes = [mode.name.lower() for mode in mp_pb2.ZuuuModePossiblities.keys()][1:]
+        possible_drive_modes = [mode.lower() for mode in mp_pb2.ZuuuModePossiblities.keys()][1:]
         if mode in possible_drive_modes:
             req = mp_pb2.ZuuuModeCommand(
                 mode=getattr(mp_pb2.ZuuuModePossiblities, mode.upper())
@@ -80,7 +80,7 @@ class MobileBaseSDK:
 
     @control_mode.setter
     def control_mode(self, mode: str):
-        possible_control_modes = [mode.name.lower() for mode in mp_pb2.ControlModePossiblities.keys()][1:]
+        possible_control_modes = [mode.lower() for mode in mp_pb2.ControlModePossiblities.keys()][1:]
         if mode in possible_control_modes:
             req = mp_pb2.ControlModeCommand(
                 mode=getattr(mp_pb2.ControlModePossiblities, mode.upper())
