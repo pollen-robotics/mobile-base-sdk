@@ -1,5 +1,4 @@
 """."""
-from matplotlib.pyplot import get
 from numpy import round
 
 import grpc
@@ -33,7 +32,7 @@ class MobileBaseSDK:
 
     def __repr__(self) -> str:
         """Clean representation of a Reachy."""
-        return f'''<MobileBase host="{self._host}" battery_level={self.battery_level}
+        return f'''<MobileBase host="{self._host}" version={self.model_version} battery_level={self.battery_level}
         drive mode={self._drive_mode} control mode={self.control_mode}>'''
 
     @property
@@ -41,16 +40,16 @@ class MobileBaseSDK:
         return self._presence_stub.GetMobileBasePresence(Empty()).model_version.value
 
     @property
-    def battery_level(self):
+    def battery_voltage(self):
         return round(self._stub.GetBatteryLevel(Empty()).level.value, 1)
 
     @property
     def odometry(self):
         response = self._stub.GetOdometry(Empty())
         odom = {
-            'x': response.x.value,
-            'y': response.y.value,
-            'theta': response.theta.value,
+            'x': round(response.x.value, 3),
+            'y': round(response.y.value, 3),
+            'theta': round(response.theta.value, 3),
         }
         return odom
 
