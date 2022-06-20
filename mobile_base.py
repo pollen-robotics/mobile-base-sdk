@@ -32,7 +32,9 @@ class MobileBaseSDK:
         self._control_mode = get_control_mode()
 
     def __repr__(self) -> str:
-        pass
+        """Clean representation of a Reachy."""
+        return f'''<MobileBase host="{self._host}" battery_level={self.battery_level}
+        drive mode={self._drive_mode} control mode={self.control_mode}>'''
 
     @property
     def model_version(self):
