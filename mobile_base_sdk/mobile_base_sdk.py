@@ -7,7 +7,7 @@ in cartesian coordinates (x, y, theta) or directly send velocities (x_vel, y_vel
 """
 
 from numpy import round, rad2deg, deg2rad
-
+import time
 import grpc
 from google.protobuf.empty_pb2 import Empty
 from google.protobuf.wrappers_pb2 import FloatValue
@@ -32,10 +32,12 @@ class MobileBaseSDK:
         """Set up the connection with the mobile base."""
         self._host = host
         self._mobile_nase_port = mobile_base_port
-        self._grpc_channel = grpc.insecure_channel(f'{self._host}:{self._mobile_nase_port}')
+        self._grpc_channel = grpc.insecure_channel(
+            f'{self._host}:{self._mobile_nase_port}')
 
         self._stub = mp_pb2_grpc.MobilityServiceStub(self._grpc_channel)
-        self._presence_stub = mp_pb2_grpc.MobileBasePresenceServiceStub(self._grpc_channel)
+        self._presence_stub = mp_pb2_grpc.MobileBasePresenceServiceStub(
+            self._grpc_channel)
 
         def get_drive_mode():
             mode_id = self._stub.GetZuuuMode(Empty()).mode
@@ -84,7 +86,8 @@ class MobileBaseSDK:
     @drive_mode.setter
     def drive_mode(self, mode: str):
         """Set the base's drive mode."""
-        possible_drive_modes = [mode.lower() for mode in mp_pb2.ZuuuModePossiblities.keys()][1:]
+        possible_drive_modes = [mode.lower()
+                                for mode in mp_pb2.ZuuuModePossiblities.keys()][1:]
         if mode in possible_drive_modes:
             req = mp_pb2.ZuuuModeCommand(
                 mode=getattr(mp_pb2.ZuuuModePossiblities, mode.upper())
@@ -105,7 +108,8 @@ class MobileBaseSDK:
     @control_mode.setter
     def control_mode(self, mode: str):
         """Set the base's control mode."""
-        possible_control_modes = [mode.lower() for mode in mp_pb2.ControlModePossiblities.keys()][1:]
+        possible_control_modes = [
+            mode.lower() for mode in mp_pb2.ControlModePossiblities.keys()][1:]
         if mode in possible_control_modes:
             req = mp_pb2.ControlModeCommand(
                 mode=getattr(mp_pb2.ControlModePossiblities, mode.upper())
@@ -113,11 +117,13 @@ class MobileBaseSDK:
             self._stub.SetControlMode(req)
             self._control_mode = mode
         else:
-            print(f'Drive mode requested should be in {possible_control_modes}!')
+            print(
+                f'Drive mode requested should be in {possible_control_modes}!')
 
     def reset_odometry(self):
         """Reset the odometry."""
         self._stub.ResetOdometry(Empty())
+        time.sleep(0.03)
 
     def set_speed(self, x_vel: float, y_vel: float, rot_vel: float, duration: float):
         """Send target speed. x_vel, y_vel are in m/s and rot_vel in deg/s.
