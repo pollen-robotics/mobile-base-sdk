@@ -19,10 +19,10 @@ setup(
 
     install_requires=[
         'numpy',
-        'reachy-sdk-api',
         'grpcio>=1.37',
         'protobuf>3',
     ],
+    # 'reachy-sdk-api',
 
     extras_require={
         'doc': ['sphinx'],
