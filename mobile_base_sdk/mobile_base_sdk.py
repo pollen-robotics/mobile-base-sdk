@@ -6,7 +6,7 @@ or the odometry. You can also easily make the mobile base move by setting a goal
 in cartesian coordinates (x, y, theta) or directly send velocities (x_vel, y_vel, theta_vel).
 """
 
-from numpy import round
+from numpy import round, rad2deg, deg2rad
 
 import grpc
 from google.protobuf.empty_pb2 import Empty
@@ -45,12 +45,12 @@ class MobileBaseSDK:
             mode_id = self._stub.GetControlMode(Empty()).mode
             return mp_pb2.ControlModePossiblities.keys()[mode_id]
 
-        self._drive_mode = get_drive_mode()
-        self._control_mode = get_control_mode()
+        self._drive_mode = get_drive_mode().lower()
+        self._control_mode = get_control_mode().lower()
 
     def __repr__(self) -> str:
         """Clean representation of a mobile base."""
-        return f'''<MobileBase host="{self._host}" version={self.model_version} battery_level={self.battery_level}
+        return f'''<MobileBase host="{self._host}" version={self.model_version} battery_level={self.battery_voltage}
         drive mode={self._drive_mode} control mode={self.control_mode}>'''
 
     @property
@@ -65,18 +65,20 @@ class MobileBaseSDK:
 
     @property
     def odometry(self):
-        """Return the odometry of the base."""
+        """Return the odometry of the base. x, y are in meters and theta in degree."""
         response = self._stub.GetOdometry(Empty())
         odom = {
             'x': round(response.x.value, 3),
             'y': round(response.y.value, 3),
-            'theta': round(response.theta.value, 3),
+            'theta': round(rad2deg(response.theta.value), 3),
         }
         return odom
 
     @property
     def drive_mode(self):
-        """Return the base's drive mode."""
+        """Return the base's drive mode.
+
+        Drive mode is one of ['cmd_vel', 'brake', 'free_wheel', 'speed', 'goto', 'emergency_stop']."""
         return self._drive_mode
 
     @drive_mode.setter
@@ -94,7 +96,10 @@ class MobileBaseSDK:
 
     @property
     def control_mode(self):
-        """Return the base's control mode."""
+        """Return the base's control mode.
+
+        Control mode is one of ['open_loop', 'pid'].
+        """
         return self._control_mode
 
     @control_mode.setter
@@ -115,7 +120,7 @@ class MobileBaseSDK:
         self._stub.ResetOdometry(Empty())
 
     def set_speed(self, x_vel: float, y_vel: float, rot_vel: float, duration: float):
-        """Send target speed. x_vel, y_vel are in m/s and rot_vel in rad/s.
+        """Send target speed. x_vel, y_vel are in m/s and rot_vel in deg/s.
 
         A different instruction is sent to the base depending on if a duration (in seconds)
         is given as intruction or not.
@@ -133,7 +138,7 @@ class MobileBaseSDK:
                 direction=mp_pb2.DirectionVector(
                     x=FloatValue(value=x_vel),
                     y=FloatValue(value=y_vel),
-                    theta=FloatValue(value=rot_vel),
+                    theta=FloatValue(value=deg2rad(rot_vel)),
                 )
             )
             self._stub.SendDirection(req)
@@ -142,12 +147,13 @@ class MobileBaseSDK:
                 duration=FloatValue(value=duration),
                 x_vel=FloatValue(value=x_vel),
                 y_vel=FloatValue(value=y_vel),
-                rot_vel=FloatValue(value=rot_vel),
+                rot_vel=FloatValue(value=deg2rad(rot_vel)),
             )
+            self._drive_mode = 'speed'
             self._stub.SendSetSpeed(req)
 
     def go_to(self, x: float, y: float, theta: float):
-        """Send target position. x, y are in meters and theta is in radian.
+        """Send target position. x, y are in meters and theta is in degree.
 
         (x, y) will define the position of the mobile base in cartesian space
         and theta its orientation. The zero position is set when the mobile base is
@@ -156,8 +162,9 @@ class MobileBaseSDK:
         req = mp_pb2.GoToVector(
             x_goal=FloatValue(value=x),
             y_goal=FloatValue(value=y),
-            theta_goal=FloatValue(value=theta),
+            theta_goal=FloatValue(value=deg2rad(theta)),
         )
+        self._drive_mode = 'go_to'
         self._stub.SendGoTo(req)
 
     def _distance_to_go_to_goal(self):
@@ -165,7 +172,7 @@ class MobileBaseSDK:
         distance = {
             'delta_x': round(response.delta_x.value, 3),
             'delta_y': round(response.delta_y.value, 3),
-            'delta_theta': round(response.delta_theta.value, 3),
+            'delta_theta': round(rad2deg(response.delta_theta.value), 3),
             'distance': round(response.distance.value, 3),
         }
         return distance
@@ -173,3 +180,4 @@ class MobileBaseSDK:
     def emergency_shutdown(self):
         """Kill mobile base main ROS nodes and stop the mobile base immediately."""
         self.drive_mode = 'emergency_stop'
+        self._drive_mode = 'emergency_stop'
