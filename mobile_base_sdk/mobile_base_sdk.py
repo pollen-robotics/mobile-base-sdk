@@ -141,6 +141,9 @@ class MobileBaseSDK:
         The 200ms duration is predifined at the ROS level of the mobile base's code.
         This mode is prefered if the user wants to send speed instructions frequently.
         """
+        if self.drive_mode != 'cmd_vel':
+            self._drive_mode = 'cmd_vel'
+
         for vel, value in {'x_vel': x_vel, 'y_vel': y_vel}.items():
             if abs(value) > self._max_xy_vel:
                 raise ValueError(f'The asbolute value of {vel} should not be more than {self._max_xy_vel}!')
