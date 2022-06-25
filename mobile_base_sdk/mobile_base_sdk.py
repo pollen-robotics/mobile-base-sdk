@@ -244,4 +244,4 @@ class MobileBaseSDK:
         self.drive_mode = 'emergency_stop'
         self._drive_mode = 'emergency_stop'
         self._logger.warning('Emergency shutdown executed.\n'
-                             'No command on the mobile base will work until you restarted it.')
+                             'No command on the mobile base will work until you restarted its hal and sdk server.')
