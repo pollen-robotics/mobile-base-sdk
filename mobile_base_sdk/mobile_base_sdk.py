@@ -62,8 +62,8 @@ class MobileBaseSDK:
 
     def __repr__(self) -> str:
         """Clean representation of a mobile base."""
-        return f'''<MobileBase host="{self._host}" version={self.model_version} battery_voltage={self.battery_voltage}
-        drive mode={self._drive_mode} control mode={self.control_mode}>'''
+        return f'''<MobileBase host="{self._host}" - version={self.model_version} - battery_voltage=
+        {self.battery_voltage} - drive mode={self._drive_mode} - control mode={self.control_mode}>'''
 
     @property
     def model_version(self):
