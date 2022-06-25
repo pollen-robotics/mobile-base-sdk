@@ -168,6 +168,12 @@ class MobileBaseSDK:
             'delta_theta': 15,
             'distance': 0.1
             }):
+        """Send target position. x, y are in meters and theta is in degree.
+
+        (x, y) will define the position of the mobile base in cartesian space
+        and theta its orientation. The zero position is set when the mobile base is
+        started or if the  reset_odometry method is called.
+        """
         exc_queue: Queue[Exception] = Queue()
 
         def _wrapped_goto():
@@ -199,12 +205,7 @@ class MobileBaseSDK:
             'delta_theta': 15,
             'distance': 0.1
             }):
-        """Send target position. x, y are in meters and theta is in degree.
-
-        (x, y) will define the position of the mobile base in cartesian space
-        and theta its orientation. The zero position is set when the mobile base is
-        started or if the  reset_odometry method is called.
-        """
+        """Async version of the goto method."""
         for pos, value in {'x': x, 'y': y}.items():
             if abs(value) > self._max_xy_goto:
                 raise ValueError(f'The asbolute value of {pos} should not be more than {self._max_xy_goto}!')
