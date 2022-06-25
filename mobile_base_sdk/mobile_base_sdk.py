@@ -8,6 +8,11 @@ in cartesian coordinates (x, y, theta) or directly send velocities (x_vel, y_vel
 
 from numpy import round, rad2deg, deg2rad
 import time
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+from queue import Queue
+from logging import getLogger
+
 import grpc
 from google.protobuf.empty_pb2 import Empty
 from google.protobuf.wrappers_pb2 import FloatValue
@@ -30,6 +35,7 @@ class MobileBaseSDK:
 
     def __init__(self, host: str, mobile_base_port: int = 50061) -> None:
         """Set up the connection with the mobile base."""
+        self._logger = getLogger()
         self._host = host
         self._mobile_nase_port = mobile_base_port
         self._grpc_channel = grpc.insecure_channel(
@@ -100,7 +106,7 @@ class MobileBaseSDK:
             self._stub.SetZuuuMode(req)
             self._drive_mode = mode
         else:
-            print(f'Drive mode requested should be in {possible_drive_modes}!')
+            self._logger.info(f'Drive mode requested should be in {possible_drive_modes}!')
 
     @property
     def control_mode(self):
@@ -122,8 +128,7 @@ class MobileBaseSDK:
             self._stub.SetControlMode(req)
             self._control_mode = mode
         else:
-            print(
-                f'Drive mode requested should be in {possible_control_modes}!')
+            self._logger.info(f'Drive mode requested should be in {possible_control_modes}!')
 
     def reset_odometry(self):
         """Reset the odometry."""
@@ -152,7 +157,48 @@ class MobileBaseSDK:
         )
         self._stub.SendDirection(req)
 
-    def goto(self, x: float, y: float, theta: float):
+    def goto(
+        self,
+        x: float,
+        y: float,
+        theta: float,
+        tolerance: dict = {
+            'delta_x': 0.1,
+            'delta_y': 0.1,
+            'delta_theta': 15,
+            'distance': 0.1
+            }):
+        exc_queue: Queue[Exception] = Queue()
+
+        def _wrapped_goto():
+            try:
+                asyncio.run(
+                    self.goto_async(
+                        x=x,
+                        y=y,
+                        theta=theta,
+                        tolerance=tolerance,
+                    ),
+                )
+            except Exception as e:
+                exc_queue.put(e)
+
+        with ThreadPoolExecutor() as exec:
+            exec.submit(_wrapped_goto)
+        if not exc_queue.empty():
+            raise exc_queue.get()
+
+    async def goto_async(
+        self,
+        x: float,
+        y: float,
+        theta: float,
+        tolerance: dict = {
+            'delta_x': 0.1,
+            'delta_y': 0.1,
+            'delta_theta': 15,
+            'distance': 0.1
+            }):
         """Send target position. x, y are in meters and theta is in degree.
 
         (x, y) will define the position of the mobile base in cartesian space
@@ -171,6 +217,17 @@ class MobileBaseSDK:
         self._drive_mode = 'go_to'
         self._stub.SendGoTo(req)
 
+        while True:
+            arrived = True
+            distance_to_goal = self._distance_to_goto_goal()
+            for delta_key in tolerance.keys():
+                if tolerance[delta_key] < abs(distance_to_goal[delta_key]):
+                    arrived = False
+                    break
+            await asyncio.sleep(0.1)
+            if arrived:
+                break
+
     def _distance_to_goto_goal(self):
         response = self._stub.DistanceToGoal(Empty())
         distance = {
@@ -185,3 +242,5 @@ class MobileBaseSDK:
         """Kill mobile base main ROS nodes and stop the mobile base immediately."""
         self.drive_mode = 'emergency_stop'
         self._drive_mode = 'emergency_stop'
+        self._logger.warning('Emergency shutdown executed.\n'
+                             'No command on the mobile base will work until you restarted it.')
