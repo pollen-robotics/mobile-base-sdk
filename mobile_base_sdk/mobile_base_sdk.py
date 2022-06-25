@@ -12,6 +12,7 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from queue import Queue
 from logging import getLogger
+from subprocess import run, PIPE
 
 import grpc
 from google.protobuf.empty_pb2 import Empty
@@ -248,3 +249,10 @@ class MobileBaseSDK:
         self._drive_mode = 'emergency_stop'
         self._logger.warning('Emergency shutdown executed.\n'
                              'No command on the mobile base will work until you restarted its hal and sdk server.')
+
+    def restart_hal(self):
+        """Restart the mobile base hal and sdk server in case the emergency shutdown has been called."""
+        run(['systemctl --user restart reachy_mobile_base.service'], stdout=PIPE, shell=True)
+        self._control_mode = 'open_loop'
+        self._drive_mode = 'cmd_vel'
+        self._logger.info('Mobile base hal and sdk server restarted.')
