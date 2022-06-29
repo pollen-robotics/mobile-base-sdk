@@ -12,11 +12,10 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from queue import Queue
 from logging import getLogger
-from subprocess import run, PIPE
 
 import grpc
 from google.protobuf.empty_pb2 import Empty
-from google.protobuf.wrappers_pb2 import FloatValue
+from google.protobuf.wrappers_pb2 import FloatValue, BoolValue
 
 from reachy_sdk_api import mobile_platform_reachy_pb2 as mp_pb2, mobile_platform_reachy_pb2_grpc as mp_pb2_grpc
 
@@ -252,7 +251,11 @@ class MobileBaseSDK:
 
     def restart_hal(self):
         """Restart the mobile base hal and sdk server in case the emergency shutdown has been called."""
-        run(['systemctl --user restart reachy_mobile_base.service'], stdout=PIPE, shell=True)
+        self._stub.RestartZuuuHal(Empty())
         self._control_mode = 'open_loop'
         self._drive_mode = 'cmd_vel'
-        self._logger.info('Mobile base hal and sdk server restarted.')
+        self._logger.info('reachy_mobile_base.service restarted.')
+
+    def _set_safety(self, safety_on):
+        req = mp_pb2.SetZuuuSafetyRequest(safety_on=BoolValue(value=safety_on))
+        self._stub.SetZuuuSafety(req)
