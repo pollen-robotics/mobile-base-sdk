@@ -1,25 +1,16 @@
-import sys
 
-import geometry_msgs.msg
-import rclpy
-
-from rclpy.node import Node
 import pygame
 import time
-import math
-import numpy as np
 import traceback
 import sys
-from rclpy.qos import ReliabilityPolicy, QoSProfile
 from signal import signal, SIGINT
-
 
 from mobile_base_sdk import MobileBaseSDK
 
-import os
 
-# To be able to use pygame in "headless" mode
-# set SDL to use the dummy NULL video driver, so it doesn't need a windowing system.
+# To be able to use pygame in "headless" mode, typically if there is no screen connected,
+# set SDL to use the dummy NULL video driver, so it doesn't need a windowing system:
+# import os
 # os.environ["SDL_VIDEODRIVER"] = "dummy"
 
 msg = """
