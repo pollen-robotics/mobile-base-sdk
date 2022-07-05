@@ -97,8 +97,8 @@ class MobileBaseSDK:
     @drive_mode.setter
     def drive_mode(self, mode: str):
         """Set the base's drive mode."""
-        possible_drive_modes = [mode.lower()
-                                for mode in mp_pb2.ZuuuModePossiblities.keys()][1:]
+        all_drive_modes = [mode.lower() for mode in mp_pb2.ZuuuModePossiblities.keys()][1:]
+        possible_drive_modes = [mode for mode in all_drive_modes if mode not in ('speed', 'goto')]
         if mode in possible_drive_modes:
             req = mp_pb2.ZuuuModeCommand(
                 mode=getattr(mp_pb2.ZuuuModePossiblities, mode.upper())
@@ -106,7 +106,7 @@ class MobileBaseSDK:
             self._stub.SetZuuuMode(req)
             self._drive_mode = mode
         else:
-            self._logger.info(f'Drive mode requested should be in {possible_drive_modes}!')
+            self._logger.warning(f'Drive mode requested should be in {possible_drive_modes}!')
 
     @property
     def control_mode(self):
@@ -128,7 +128,7 @@ class MobileBaseSDK:
             self._stub.SetControlMode(req)
             self._control_mode = mode
         else:
-            self._logger.info(f'Drive mode requested should be in {possible_control_modes}!')
+            self._logger.warning(f'Control mode requested should be in {possible_control_modes}!')
 
     def reset_odometry(self):
         """Reset the odometry."""
@@ -186,8 +186,8 @@ class MobileBaseSDK:
 
         if not timeout:
             # We consider that the max velocity for the mobile base is 0.5 m/s
-            # timeout is 1/2 x _max_xy_goto / max velocity
-            timeout = 0.5 * self._max_xy_goto / 0.5
+            # timeout is _max_xy_goto / max velocity
+            timeout = self._max_xy_goto / 0.5
 
         def _wrapped_goto():
             try:
