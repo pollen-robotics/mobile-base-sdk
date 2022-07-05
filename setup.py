@@ -21,6 +21,7 @@ setup(
         'numpy',
         'grpcio>=1.37',
         'protobuf>3',
+        'pygame',
     ],
     # 'reachy-sdk-api',
 
