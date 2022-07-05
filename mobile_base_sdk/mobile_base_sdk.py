@@ -90,7 +90,7 @@ class MobileBaseSDK:
     def drive_mode(self):
         """Return the base's drive mode.
 
-        Drive mode is one of ['cmd_vel', 'brake', 'free_wheel', 'speed', 'goto', 'emergency_stop'].
+        Drive mode is one of ['cmd_vel', 'brake', 'free_wheel', 'emergency_stop'].
         """
         return self._drive_mode
 
