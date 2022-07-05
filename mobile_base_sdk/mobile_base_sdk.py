@@ -58,7 +58,7 @@ class MobileBaseSDK:
 
         self._max_xy_vel = 1.0
         self._max_rot_vel = 180.0
-        self._max_xy_goto = 0.5
+        self._max_xy_goto = 1.0
 
     def __repr__(self) -> str:
         """Clean representation of a mobile base."""
@@ -165,6 +165,7 @@ class MobileBaseSDK:
         x: float,
         y: float,
         theta: float,
+        timeout: float = None,
         tolerance: dict = {
             'delta_x': 0.1,
             'delta_y': 0.1,
@@ -176,8 +177,17 @@ class MobileBaseSDK:
         (x, y) will define the position of the mobile base in cartesian space
         and theta its orientation. The zero position is set when the mobile base is
         started or if the  reset_odometry method is called.
+        A timeout in seconds is defined so that the mobile base does get stuck in a go
+        to call.
+        The tolerance represents the margin along x, y and theta for which we consider
+        that the mobile base has arrived its goal.
         """
         exc_queue: Queue[Exception] = Queue()
+
+        if not timeout:
+            # We consider that the max velocity for the mobile base is 0.5 m/s
+            # timeout is 1/2 x _max_xy_goto / max velocity
+            timeout = 0.5 * self._max_xy_goto / 0.5
 
         def _wrapped_goto():
             try:
@@ -186,6 +196,7 @@ class MobileBaseSDK:
                         x=x,
                         y=y,
                         theta=theta,
+                        timeout=timeout,
                         tolerance=tolerance,
                     ),
                 )
@@ -202,6 +213,7 @@ class MobileBaseSDK:
         x: float,
         y: float,
         theta: float,
+        timeout: float,
         tolerance: dict = {
             'delta_x': 0.1,
             'delta_y': 0.1,
@@ -221,7 +233,8 @@ class MobileBaseSDK:
         self._drive_mode = 'go_to'
         self._stub.SendGoTo(req)
 
-        while True:
+        tic = time.time()
+        while time.time() - tic < timeout:
             arrived = True
             distance_to_goal = self._distance_to_goto_goal()
             for delta_key in tolerance.keys():
