@@ -256,7 +256,7 @@ class MobileBaseSDK:
         return distance
 
     def emergency_shutdown(self):
-        """Kill mobile base main ROS nodes and stop the mobile base immediately."""
+        """Stop the mobile base immediately by changing its drive mode to 'brake'."""
         self.drive_mode = 'brake'
 
     def _set_safety(self, safety_on):
