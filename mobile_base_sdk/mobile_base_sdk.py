@@ -257,17 +257,7 @@ class MobileBaseSDK:
 
     def emergency_shutdown(self):
         """Kill mobile base main ROS nodes and stop the mobile base immediately."""
-        self.drive_mode = 'emergency_stop'
-        self._drive_mode = 'emergency_stop'
-        self._logger.warning('Emergency shutdown executed.\n'
-                             'No command on the mobile base will work until you restarted its hal and sdk server.')
-
-    def restart_hal(self):
-        """Restart the mobile base hal and sdk server in case the emergency shutdown has been called."""
-        self._stub.RestartZuuuHal(Empty())
-        self._control_mode = 'open_loop'
-        self._drive_mode = 'cmd_vel'
-        self._logger.info('reachy_mobile_base.service restarted.')
+        self.drive_mode = 'brake'
 
     def _set_safety(self, safety_on):
         req = mp_pb2.SetZuuuSafetyRequest(safety_on=BoolValue(value=safety_on))
