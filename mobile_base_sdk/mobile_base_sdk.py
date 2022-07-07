@@ -161,16 +161,16 @@ class MobileBaseSDK:
         self._stub.SendDirection(req)
 
     def goto(
-        self,
-        x: float,
-        y: float,
-        theta: float,
-        timeout: float = None,
-        tolerance: dict = {
-            'delta_x': 0.1,
-            'delta_y': 0.1,
-            'delta_theta': 15,
-            'distance': 0.1
+            self,
+            x: float,
+            y: float,
+            theta: float,
+            timeout: float = None,
+            tolerance: dict = {
+                'delta_x': 0.1,
+                'delta_y': 0.1,
+                'delta_theta': 15,
+                'distance': 0.1
             }):
         """Send target position. x, y are in meters and theta is in degree.
 
@@ -186,8 +186,8 @@ class MobileBaseSDK:
 
         if not timeout:
             # We consider that the max velocity for the mobile base is 0.5 m/s
-            # timeout is _max_xy_goto / max velocity
-            timeout = self._max_xy_goto / 0.5
+            # timeout is 2*_max_xy_goto / max velocity
+            timeout = 2*self._max_xy_goto / 0.5
 
         def _wrapped_goto():
             try:
@@ -209,16 +209,16 @@ class MobileBaseSDK:
             raise exc_queue.get()
 
     async def goto_async(
-        self,
-        x: float,
-        y: float,
-        theta: float,
-        timeout: float,
-        tolerance: dict = {
-            'delta_x': 0.1,
-            'delta_y': 0.1,
-            'delta_theta': 15,
-            'distance': 0.1
+            self,
+            x: float,
+            y: float,
+            theta: float,
+            timeout: float,
+            tolerance: dict = {
+                'delta_x': 0.1,
+                'delta_y': 0.1,
+                'delta_theta': 15,
+                'distance': 0.1
             }):
         """Async version of the goto method."""
         for pos, value in {'x': x, 'y': y}.items():
