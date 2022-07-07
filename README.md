@@ -4,7 +4,7 @@ As of July 2022, the [Reachy robot](https://www.pollen-robotics.com/reachy/) gai
 
 Reachy is now equipped with an omnidirectional open source mobile base allowing the robot to move in any direction, turn itself around, go through doors or squeeze through tight spaces.
 
-<img src="https://https://github.com/pollen-robotics/website/tree/master/static/img/reachy/packs/reachy-full-kit-mobile.png" width="400">
+<img src="https://www.pollen-robotics.com/img/reachy/packs/reachy-full-kit-mobile.png" width="400">
 
 The mobile base Python SDK is a pure Python SDk library that let you control Reachy's mobile base even without having Reachy's motors turned on.
 
