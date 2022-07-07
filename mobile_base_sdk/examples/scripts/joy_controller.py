@@ -81,9 +81,9 @@ class JoyController():
         self.min_joy_position = 0.03
 
         print(msg)
-        ip_adress = '192.168.1.21'
-        print(f"Connecting to {ip_adress}")
-        self.mobile_base = MobileBaseSDK('192.168.1.21')  # Replace with your Reachy's IP address
+        ip_address = '192.168.86.35'  # Replace with your Reachy's IP address
+        print(f"Connecting to {ip_address}")
+        self.mobile_base = MobileBaseSDK(ip_address)
 
         def emergency_shutdown_(signal_received, frame):
             self.emergency_shutdown("SIGINT received")
