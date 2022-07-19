@@ -1,4 +1,4 @@
-
+# flake8: noqa
 import pygame
 import time
 import traceback
