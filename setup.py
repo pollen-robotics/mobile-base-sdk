@@ -19,11 +19,11 @@ setup(
 
     install_requires=[
         'numpy',
+        'reachy-sdk-api>=0.6.0',
         'grpcio>=1.37',
         'protobuf>3',
         'pygame',
     ],
-    # 'reachy-sdk-api',
 
     extras_require={
         'doc': ['sphinx'],
