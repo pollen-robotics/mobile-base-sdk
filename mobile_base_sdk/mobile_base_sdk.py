@@ -68,7 +68,7 @@ class MobileBaseSDK:
     @property
     def model_version(self):
         """Return the mobile base version specified in Reachy's config file."""
-        return self._presence_stub.GetMobileBasePresence(Empty()).model_version.value
+        return round(self._presence_stub.GetMobileBasePresence(Empty()).model_version.value, 1)
 
     @property
     def battery_voltage(self):
