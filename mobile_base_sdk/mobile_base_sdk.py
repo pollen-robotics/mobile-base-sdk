@@ -37,9 +37,9 @@ class MobileBaseSDK:
         """Set up the connection with the mobile base."""
         self._logger = getLogger()
         self._host = host
-        self._mobile_nase_port = mobile_base_port
+        self._mobile_base_port = mobile_base_port
         self._grpc_channel = grpc.insecure_channel(
-            f'{self._host}:{self._mobile_nase_port}')
+            f'{self._host}:{self._mobile_base_port}')
 
         self._stub = mp_pb2_grpc.MobilityServiceStub(self._grpc_channel)
         self._presence_stub = mp_pb2_grpc.MobileBasePresenceServiceStub(
@@ -63,7 +63,7 @@ class MobileBaseSDK:
     def __repr__(self) -> str:
         """Clean representation of a mobile base."""
         return f'''<MobileBase host="{self._host}" - version={self.model_version} - battery_voltage=
-        {self.battery_voltage} - drive mode={self._drive_mode} - control mode={self.control_mode}>'''
+        {self.battery_voltage} - drive mode={self._drive_mode} - control mode={self._control_mode}>'''
 
     @property
     def model_version(self):
