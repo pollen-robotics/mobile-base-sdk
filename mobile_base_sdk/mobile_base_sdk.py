@@ -86,16 +86,7 @@ class MobileBaseSDK:
         }
         return odom
 
-    @property
-    def drive_mode(self):
-        """Return the base's drive mode.
-
-        Drive mode is one of ['cmd_vel', 'brake', 'free_wheel', 'emergency_stop'].
-        """
-        return self._drive_mode
-
-    @drive_mode.setter
-    def drive_mode(self, mode: str):
+    def _set_drive_mode(self, mode: str):
         """Set the base's drive mode."""
         all_drive_modes = [mode.lower() for mode in mp_pb2.ZuuuModePossiblities.keys()][1:]
         possible_drive_modes = [mode for mode in all_drive_modes if mode not in ('speed', 'goto')]
@@ -108,16 +99,7 @@ class MobileBaseSDK:
         else:
             self._logger.warning(f'Drive mode requested should be in {possible_drive_modes}!')
 
-    @property
-    def control_mode(self):
-        """Return the base's control mode.
-
-        Control mode is one of ['open_loop', 'pid'].
-        """
-        return self._control_mode
-
-    @control_mode.setter
-    def control_mode(self, mode: str):
+    def _set_control_mode(self, mode: str):
         """Set the base's control mode."""
         possible_control_modes = [
             mode.lower() for mode in mp_pb2.ControlModePossiblities.keys()][1:]
@@ -141,8 +123,8 @@ class MobileBaseSDK:
         The 200ms duration is predifined at the ROS level of the mobile base's code.
         This mode is prefered if the user wants to send speed instructions frequently.
         """
-        if self.drive_mode != 'cmd_vel':
-            self._drive_mode = 'cmd_vel'
+        if self._drive_mode != 'cmd_vel':
+            self._set_drive_mode('cmd_vel')
 
         for vel, value in {'x_vel': x_vel, 'y_vel': y_vel}.items():
             if abs(value) > self._max_xy_vel:
