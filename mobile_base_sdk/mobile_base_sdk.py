@@ -17,7 +17,7 @@ import grpc
 from google.protobuf.empty_pb2 import Empty
 from google.protobuf.wrappers_pb2 import FloatValue, BoolValue
 
-from reachy_sdk_api import mobile_platform_reachy_pb2 as mp_pb2, mobile_platform_reachy_pb2_grpc as mp_pb2_grpc
+from mobile_base_sdk_api import mobile_base_pb2 as mb_pb2, mobile_base_pb2_grpc as mb_pb2_grpc
 
 
 class MobileBaseSDK:
@@ -41,17 +41,17 @@ class MobileBaseSDK:
         self._grpc_channel = grpc.insecure_channel(
             f'{self._host}:{self._mobile_base_port}')
 
-        self._stub = mp_pb2_grpc.MobilityServiceStub(self._grpc_channel)
-        self._presence_stub = mp_pb2_grpc.MobileBasePresenceServiceStub(
+        self._stub = mb_pb2_grpc.MobilityServiceStub(self._grpc_channel)
+        self._presence_stub = mb_pb2_grpc.MobileBasePresenceServiceStub(
             self._grpc_channel)
 
         def get_drive_mode():
             mode_id = self._stub.GetZuuuMode(Empty()).mode
-            return mp_pb2.ZuuuModePossiblities.keys()[mode_id]
+            return mb_pb2.ZuuuModePossiblities.keys()[mode_id]
 
         def get_control_mode():
             mode_id = self._stub.GetControlMode(Empty()).mode
-            return mp_pb2.ControlModePossiblities.keys()[mode_id]
+            return mb_pb2.ControlModePossiblities.keys()[mode_id]
 
         self._drive_mode = get_drive_mode().lower()
         self._control_mode = get_control_mode().lower()
@@ -88,11 +88,11 @@ class MobileBaseSDK:
 
     def _set_drive_mode(self, mode: str):
         """Set the base's drive mode."""
-        all_drive_modes = [mode.lower() for mode in mp_pb2.ZuuuModePossiblities.keys()][1:]
+        all_drive_modes = [mode.lower() for mode in mb_pb2.ZuuuModePossiblities.keys()][1:]
         possible_drive_modes = [mode for mode in all_drive_modes if mode not in ('speed', 'goto')]
         if mode in possible_drive_modes:
-            req = mp_pb2.ZuuuModeCommand(
-                mode=getattr(mp_pb2.ZuuuModePossiblities, mode.upper())
+            req = mb_pb2.ZuuuModeCommand(
+                mode=getattr(mb_pb2.ZuuuModePossiblities, mode.upper())
             )
             self._stub.SetZuuuMode(req)
             self._drive_mode = mode
@@ -102,10 +102,10 @@ class MobileBaseSDK:
     def _set_control_mode(self, mode: str):
         """Set the base's control mode."""
         possible_control_modes = [
-            mode.lower() for mode in mp_pb2.ControlModePossiblities.keys()][1:]
+            mode.lower() for mode in mb_pb2.ControlModePossiblities.keys()][1:]
         if mode in possible_control_modes:
-            req = mp_pb2.ControlModeCommand(
-                mode=getattr(mp_pb2.ControlModePossiblities, mode.upper())
+            req = mb_pb2.ControlModeCommand(
+                mode=getattr(mb_pb2.ControlModePossiblities, mode.upper())
             )
             self._stub.SetControlMode(req)
             self._control_mode = mode
@@ -133,8 +133,8 @@ class MobileBaseSDK:
         if abs(rot_vel) > self._max_rot_vel:
             raise ValueError(f'The asbolute value of rot_vel should not be more than {self._max_rot_vel}!')
 
-        req = mp_pb2.TargetDirectionCommand(
-            direction=mp_pb2.DirectionVector(
+        req = mb_pb2.TargetDirectionCommand(
+            direction=mb_pb2.DirectionVector(
                 x=FloatValue(value=x_vel),
                 y=FloatValue(value=y_vel),
                 theta=FloatValue(value=deg2rad(rot_vel)),
@@ -207,7 +207,7 @@ class MobileBaseSDK:
             if abs(value) > self._max_xy_goto:
                 raise ValueError(f'The asbolute value of {pos} should not be more than {self._max_xy_goto}!')
 
-        req = mp_pb2.GoToVector(
+        req = mb_pb2.GoToVector(
             x_goal=FloatValue(value=x),
             y_goal=FloatValue(value=y),
             theta_goal=FloatValue(value=deg2rad(theta)),
@@ -242,5 +242,5 @@ class MobileBaseSDK:
         self.drive_mode = 'brake'
 
     def _set_safety(self, safety_on):
-        req = mp_pb2.SetZuuuSafetyRequest(safety_on=BoolValue(value=safety_on))
+        req = mb_pb2.SetZuuuSafetyRequest(safety_on=BoolValue(value=safety_on))
         self._stub.SetZuuuSafety(req)
