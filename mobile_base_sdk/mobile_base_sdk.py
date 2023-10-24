@@ -18,6 +18,7 @@ from google.protobuf.empty_pb2 import Empty
 from google.protobuf.wrappers_pb2 import FloatValue, BoolValue
 
 from mobile_base_sdk_api import mobile_base_pb2 as mb_pb2, mobile_base_pb2_grpc as mb_pb2_grpc
+from .lidar import Lidar
 
 
 class MobileBaseSDK:
@@ -59,6 +60,8 @@ class MobileBaseSDK:
         self._max_xy_vel = 1.0
         self._max_rot_vel = 180.0
         self._max_xy_goto = 1.0
+
+        self.lidar = Lidar(self._stub)
 
     def __repr__(self) -> str:
         """Clean representation of a mobile base."""
