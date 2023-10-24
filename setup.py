@@ -19,7 +19,7 @@ setup(
 
     install_requires=[
         'numpy',
-        'reachy-sdk-api>=0.6.0',
+        'mobile-base-sdk-api>=0.6.0',
         'grpcio>=1.37',
         'protobuf>3,<4',
         'pygame',
