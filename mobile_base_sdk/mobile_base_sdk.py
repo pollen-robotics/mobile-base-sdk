@@ -237,9 +237,13 @@ class MobileBaseSDK:
         }
         return distance
 
-    def emergency_shutdown(self):
+    def brake(self):
         """Stop the mobile base immediately by changing its drive mode to 'brake'."""
-        self.drive_mode = 'brake'
+        self._set_drive_mode('brake')
+
+    def free_wheel(self):
+        """Set the mobile base in free wheel mode."""
+        self._set_drive_mode('free_wheel')
 
     def _set_safety(self, safety_on):
         req = mb_pb2.SetZuuuSafetyRequest(safety_on=BoolValue(value=safety_on))
