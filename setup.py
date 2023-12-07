@@ -14,15 +14,16 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='mobile-base-sdk',
-    version='0.1.1',
+    version='1.0.0',
     packages=find_packages(exclude=['tests']),
 
     install_requires=[
         'numpy',
-        'mobile-base-sdk-api>=0.6.0',
-        'grpcio>=1.37',
-        'protobuf>3,<4',
+        'mobile-base-sdk-api',
+        'grpcio==1.59.3',
+        'protobuf==4.25.1',
         'pygame',
+        'pillow',
     ],
 
     extras_require={
