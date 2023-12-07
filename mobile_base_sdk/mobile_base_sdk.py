@@ -17,7 +17,8 @@ import grpc
 from google.protobuf.empty_pb2 import Empty
 from google.protobuf.wrappers_pb2 import FloatValue, BoolValue
 
-from reachy_sdk_api import mobile_platform_reachy_pb2 as mp_pb2, mobile_platform_reachy_pb2_grpc as mp_pb2_grpc
+from mobile_base_sdk_api import mobile_base_pb2 as mb_pb2, mobile_base_pb2_grpc as mb_pb2_grpc
+from .lidar import Lidar
 
 
 class MobileBaseSDK:
@@ -37,21 +38,21 @@ class MobileBaseSDK:
         """Set up the connection with the mobile base."""
         self._logger = getLogger()
         self._host = host
-        self._mobile_nase_port = mobile_base_port
+        self._mobile_base_port = mobile_base_port
         self._grpc_channel = grpc.insecure_channel(
-            f'{self._host}:{self._mobile_nase_port}')
+            f'{self._host}:{self._mobile_base_port}')
 
-        self._stub = mp_pb2_grpc.MobilityServiceStub(self._grpc_channel)
-        self._presence_stub = mp_pb2_grpc.MobileBasePresenceServiceStub(
+        self._stub = mb_pb2_grpc.MobilityServiceStub(self._grpc_channel)
+        self._presence_stub = mb_pb2_grpc.MobileBasePresenceServiceStub(
             self._grpc_channel)
 
         def get_drive_mode():
             mode_id = self._stub.GetZuuuMode(Empty()).mode
-            return mp_pb2.ZuuuModePossiblities.keys()[mode_id]
+            return mb_pb2.ZuuuModePossiblities.keys()[mode_id]
 
         def get_control_mode():
             mode_id = self._stub.GetControlMode(Empty()).mode
-            return mp_pb2.ControlModePossiblities.keys()[mode_id]
+            return mb_pb2.ControlModePossiblities.keys()[mode_id]
 
         self._drive_mode = get_drive_mode().lower()
         self._control_mode = get_control_mode().lower()
@@ -60,10 +61,12 @@ class MobileBaseSDK:
         self._max_rot_vel = 180.0
         self._max_xy_goto = 1.0
 
+        self.lidar = Lidar(self._stub)
+
     def __repr__(self) -> str:
         """Clean representation of a mobile base."""
         return f'''<MobileBase host="{self._host}" - version={self.model_version} - battery_voltage=
-        {self.battery_voltage} - drive mode={self._drive_mode} - control mode={self.control_mode}>'''
+        {self.battery_voltage} - drive mode={self._drive_mode} - control mode={self._control_mode}>'''
 
     @property
     def model_version(self):
@@ -86,44 +89,26 @@ class MobileBaseSDK:
         }
         return odom
 
-    @property
-    def drive_mode(self):
-        """Return the base's drive mode.
-
-        Drive mode is one of ['cmd_vel', 'brake', 'free_wheel', 'emergency_stop'].
-        """
-        return self._drive_mode
-
-    @drive_mode.setter
-    def drive_mode(self, mode: str):
+    def _set_drive_mode(self, mode: str):
         """Set the base's drive mode."""
-        all_drive_modes = [mode.lower() for mode in mp_pb2.ZuuuModePossiblities.keys()][1:]
+        all_drive_modes = [mode.lower() for mode in mb_pb2.ZuuuModePossiblities.keys()][1:]
         possible_drive_modes = [mode for mode in all_drive_modes if mode not in ('speed', 'goto')]
         if mode in possible_drive_modes:
-            req = mp_pb2.ZuuuModeCommand(
-                mode=getattr(mp_pb2.ZuuuModePossiblities, mode.upper())
+            req = mb_pb2.ZuuuModeCommand(
+                mode=getattr(mb_pb2.ZuuuModePossiblities, mode.upper())
             )
             self._stub.SetZuuuMode(req)
             self._drive_mode = mode
         else:
             self._logger.warning(f'Drive mode requested should be in {possible_drive_modes}!')
 
-    @property
-    def control_mode(self):
-        """Return the base's control mode.
-
-        Control mode is one of ['open_loop', 'pid'].
-        """
-        return self._control_mode
-
-    @control_mode.setter
-    def control_mode(self, mode: str):
+    def _set_control_mode(self, mode: str):
         """Set the base's control mode."""
         possible_control_modes = [
-            mode.lower() for mode in mp_pb2.ControlModePossiblities.keys()][1:]
+            mode.lower() for mode in mb_pb2.ControlModePossiblities.keys()][1:]
         if mode in possible_control_modes:
-            req = mp_pb2.ControlModeCommand(
-                mode=getattr(mp_pb2.ControlModePossiblities, mode.upper())
+            req = mb_pb2.ControlModeCommand(
+                mode=getattr(mb_pb2.ControlModePossiblities, mode.upper())
             )
             self._stub.SetControlMode(req)
             self._control_mode = mode
@@ -141,8 +126,8 @@ class MobileBaseSDK:
         The 200ms duration is predifined at the ROS level of the mobile base's code.
         This mode is prefered if the user wants to send speed instructions frequently.
         """
-        if self.drive_mode != 'cmd_vel':
-            self._drive_mode = 'cmd_vel'
+        if self._drive_mode != 'cmd_vel':
+            self._set_drive_mode('cmd_vel')
 
         for vel, value in {'x_vel': x_vel, 'y_vel': y_vel}.items():
             if abs(value) > self._max_xy_vel:
@@ -151,8 +136,8 @@ class MobileBaseSDK:
         if abs(rot_vel) > self._max_rot_vel:
             raise ValueError(f'The asbolute value of rot_vel should not be more than {self._max_rot_vel}!')
 
-        req = mp_pb2.TargetDirectionCommand(
-            direction=mp_pb2.DirectionVector(
+        req = mb_pb2.TargetDirectionCommand(
+            direction=mb_pb2.DirectionVector(
                 x=FloatValue(value=x_vel),
                 y=FloatValue(value=y_vel),
                 theta=FloatValue(value=deg2rad(rot_vel)),
@@ -225,7 +210,7 @@ class MobileBaseSDK:
             if abs(value) > self._max_xy_goto:
                 raise ValueError(f'The asbolute value of {pos} should not be more than {self._max_xy_goto}!')
 
-        req = mp_pb2.GoToVector(
+        req = mb_pb2.GoToVector(
             x_goal=FloatValue(value=x),
             y_goal=FloatValue(value=y),
             theta_goal=FloatValue(value=deg2rad(theta)),
@@ -255,10 +240,14 @@ class MobileBaseSDK:
         }
         return distance
 
-    def emergency_shutdown(self):
+    def brake(self):
         """Stop the mobile base immediately by changing its drive mode to 'brake'."""
-        self.drive_mode = 'brake'
+        self._set_drive_mode('brake')
+
+    def free_wheel(self):
+        """Set the mobile base in free wheel mode."""
+        self._set_drive_mode('free_wheel')
 
     def _set_safety(self, safety_on):
-        req = mp_pb2.SetZuuuSafetyRequest(safety_on=BoolValue(value=safety_on))
+        req = mb_pb2.SetZuuuSafetyRequest(safety_on=BoolValue(value=safety_on))
         self._stub.SetZuuuSafety(req)
