@@ -1,3 +1,11 @@
+"""LIDAR module for mobile base SDK.
+
+Handles the LIDAR features:
+    - get the map of the environment
+    - set the safety distance
+    - set the critical distance
+    - enable/disable the safety feature
+"""
 from PIL import Image
 import io
 import zlib
@@ -9,7 +17,10 @@ from mobile_base_sdk_api.mobile_base_pb2 import LidarSafety
 
 
 class Lidar:
+    """LIDAR class for mobile base SDK."""
+
     def __init__(self, stub) -> None:
+        """Initialize the LIDAR class."""
         self._stub = stub
 
         self._update_safety_info()
@@ -31,6 +42,7 @@ class Lidar:
     @property
     def safety_distance(self):
         """Safety distance in meters of the mobile base from obstacles.
+
         The mobile base's speed is slowed down if the direction of speed matches the direction of
         at least 1 LIDAR point in the safety_distance range.
         """
@@ -49,6 +61,7 @@ class Lidar:
     @property
     def critical_distance(self):
         """Critical distance in meters of the mobile base from obstacles.
+
         The mobile base's speed is changed to 0 if the direction of speed matches the direction of
         at least 1 LIDAR point in the critical_distance range.
         If at least 1 point is in the critical distance, then even motions that move away from the obstacles are
