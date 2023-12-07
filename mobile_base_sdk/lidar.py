@@ -13,15 +13,16 @@ import zlib
 from google.protobuf.empty_pb2 import Empty
 from google.protobuf.wrappers_pb2 import BoolValue, FloatValue
 
-from mobile_base_sdk_api.mobile_base_pb2 import LidarSafety
+from mobile_base_sdk_api import lidar_pb2_grpc
+from mobile_base_sdk_api.lidar_pb2 import LidarSafety
 
 
 class Lidar:
     """LIDAR class for mobile base SDK."""
 
-    def __init__(self, stub) -> None:
+    def __init__(self, grpc_channel) -> None:
         """Initialize the LIDAR class."""
-        self._stub = stub
+        self._stub = lidar_pb2_grpc.MobileBaseLidarServiceStub(grpc_channel)
 
         self._update_safety_info()
 
