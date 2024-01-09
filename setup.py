@@ -19,7 +19,6 @@ setup(
 
     install_requires=[
         'numpy',
-        'mobile-base-sdk-api',
         'grpcio==1.59.3',
         'protobuf==4.25.1',
         'pygame',
