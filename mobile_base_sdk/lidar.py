@@ -14,7 +14,7 @@ from google.protobuf.empty_pb2 import Empty
 from google.protobuf.wrappers_pb2 import BoolValue, FloatValue
 
 from reachy2_sdk_api import mobile_base_lidar_pb2_grpc as lidar_pb2_grpc
-from reachy2_sdk_api.mobile_base_lidar_pb2 import LidarSafety, LidarObstacleDetectionStatus
+from reachy2_sdk_api.mobile_base_lidar_pb2 import LidarSafety, LidarObstacleDetectionStatus, LidarObstacleDetectionEnum
 
 
 class Lidar:
@@ -99,5 +99,6 @@ class Lidar:
     def obstacle_detection_status(self) -> LidarObstacleDetectionStatus:
         """Get status of the lidar obstacle detection.
 
-        Can be either NO_OBJECT_DETECTED, OBJECT_DETECTED_SLOWDOWN, OBJECT_DETECTED_STOP or DETECTION_ERROR"""
-        return self._stub.GetLidarObstacleDetectionStatus(Empty())
+        Can be either NO_OBJECT_DETECTED, OBJECT_DETECTED_SLOWDOWN, OBJECT_DETECTED_STOP or DETECTION_ERROR.
+        """
+        return LidarObstacleDetectionEnum.Name(self._stub.GetZuuuSafety(Empty()).obstacle_detection_status.status)
