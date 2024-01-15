@@ -97,4 +97,7 @@ class Lidar:
 
     @property
     def obstacle_detection_status(self) -> LidarObstacleDetectionStatus:
+        """Get status of the lidar obstacle detection.
+
+        Can be either NO_OBJECT_DETECTED, OBJECT_DETECTED_SLOWDOWN, OBJECT_DETECTED_STOP or DETECTION_ERROR"""
         return self._stub.GetLidarObstacleDetectionStatus(Empty())
