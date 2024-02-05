@@ -17,8 +17,8 @@ import grpc
 from google.protobuf.empty_pb2 import Empty
 from google.protobuf.wrappers_pb2 import FloatValue, BoolValue
 
-from mobile_base_sdk_api import utility_pb2 as util_pb2, utility_pb2_grpc as util_pb2_grpc
-from mobile_base_sdk_api import mobility_pb2 as mob_pb2, mobility_pb2_grpc as mob_pb2_grpc
+from reachy2_sdk_api import mobile_base_utility_pb2 as util_pb2, mobile_base_utility_pb2_grpc as util_pb2_grpc
+from reachy2_sdk_api import mobile_base_mobility_pb2 as mob_pb2, mobile_base_mobility_pb2_grpc as mob_pb2_grpc
 from .lidar import Lidar
 
 
@@ -35,7 +35,7 @@ class MobileBaseSDK:
     If you encounter a problem when using the base, you have access to an emergency shutdown method.
     """
 
-    def __init__(self, host: str, mobile_base_port: int = 50061) -> None:
+    def __init__(self, host: str, mobile_base_port: int = 50051) -> None:
         """Set up the connection with the mobile base."""
         self._logger = getLogger()
         self._host = host
