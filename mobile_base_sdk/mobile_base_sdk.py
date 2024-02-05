@@ -214,6 +214,7 @@ class MobileBaseSDK:
         self._mobility_stub.SendGoTo(req)
 
         tic = time.time()
+        arrived = False
         while time.time() - tic < timeout:
             arrived = True
             distance_to_goal = self._distance_to_goto_goal()
@@ -224,6 +225,10 @@ class MobileBaseSDK:
             await asyncio.sleep(0.1)
             if arrived:
                 break
+
+        if not arrived:
+            if self.lidar.obstacle_detection_status == "OBJECT_DETECTED_STOP":
+                self._logger.warning("Target not reached. Mobile base stopped because of obstacle.")
 
     def _distance_to_goto_goal(self):
         response = self._mobility_stub.DistanceToGoal(Empty())
