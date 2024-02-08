@@ -69,7 +69,7 @@ class MobileBaseSDK:
         return util_pb2.ControlModePossiblities.keys()[mode_id]
 
     @property
-    def battery_voltage(self):
+    def battery_voltage(self) -> float:
         """Return the battery voltage. Battery should be recharged if it reaches 24.5V or below."""
         return round(self._utility_stub.GetBatteryLevel(Empty()).level.value, 1)
 
