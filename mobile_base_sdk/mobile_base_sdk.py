@@ -239,11 +239,11 @@ class MobileBaseSDK:
         }
         return distance
 
-    def brake(self):
+    def turn_on(self):
         """Stop the mobile base immediately by changing its drive mode to 'brake'."""
         self._set_drive_mode('brake')
 
-    def free_wheel(self):
+    def turn_off(self):
         """Set the mobile base in free wheel mode."""
         self._set_drive_mode('free_wheel')
 
