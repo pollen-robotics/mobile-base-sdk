@@ -46,16 +46,8 @@ class MobileBaseSDK:
         self._utility_stub = util_pb2_grpc.MobileBaseUtilityServiceStub(self._grpc_channel)
         self._mobility_stub = mob_pb2_grpc.MobileBaseMobilityServiceStub(self._grpc_channel)
 
-        def get_drive_mode():
-            mode_id = self._utility_stub.GetZuuuMode(Empty()).mode
-            return util_pb2.ZuuuModePossiblities.keys()[mode_id]
-
-        def get_control_mode():
-            mode_id = self._utility_stub.GetControlMode(Empty()).mode
-            return util_pb2.ControlModePossiblities.keys()[mode_id]
-
-        self._drive_mode = get_drive_mode().lower()
-        self._control_mode = get_control_mode().lower()
+        self._drive_mode = self._get_drive_mode().lower()
+        self._control_mode = self._get_control_mode().lower()
 
         self._max_xy_vel = 1.0
         self._max_rot_vel = 180.0
@@ -67,6 +59,14 @@ class MobileBaseSDK:
         """Clean representation of a mobile base."""
         return f'''<MobileBase host="{self._host}" - battery_voltage=
         {self.battery_voltage} - drive mode={self._drive_mode} - control mode={self._control_mode}>'''
+
+    def _get_drive_mode(self):
+        mode_id = self._utility_stub.GetZuuuMode(Empty()).mode
+        return util_pb2.ZuuuModePossiblities.keys()[mode_id]
+
+    def _get_control_mode(self):
+        mode_id = self._utility_stub.GetControlMode(Empty()).mode
+        return util_pb2.ControlModePossiblities.keys()[mode_id]
 
     @property
     def battery_voltage(self):
@@ -239,13 +239,23 @@ class MobileBaseSDK:
         }
         return distance
 
-    def turn_on(self):
+    def turn_on(self) -> None:
         """Stop the mobile base immediately by changing its drive mode to 'brake'."""
         self._set_drive_mode('brake')
 
-    def turn_off(self):
+    def turn_off(self) -> None:
         """Set the mobile base in free wheel mode."""
         self._set_drive_mode('free_wheel')
+
+    def is_on(self) -> bool:
+        """Returns True if the mobile base is not compliant"""
+        self._drive_mode = self._get_drive_mode().lower()
+        return not self._drive_mode == "free_wheel"
+
+    def is_off(self) -> bool:
+        """Returns True if the mobile base is compliant"""
+        self._drive_mode = self._get_drive_mode().lower()
+        return self._drive_mode == "free_wheel"
 
     def _set_safety(self, safety_on):
         req = mob_pb2.SetZuuuSafetyRequest(safety_on=BoolValue(value=safety_on))
