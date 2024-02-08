@@ -105,8 +105,8 @@ class Lidar:
 
     def reset_safety_default_values(self) -> None:
         """Reset default distances values for safety detection.
-        Reset values are:
 
+        Reset values are:
         - safety_critical_distance
         - safety_slowdown_distance.
         """
