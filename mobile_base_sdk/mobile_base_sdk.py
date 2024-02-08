@@ -172,7 +172,7 @@ class MobileBaseSDK:
         def _wrapped_goto():
             try:
                 asyncio.run(
-                    self.goto_async(
+                    self._goto_async(
                         x=x,
                         y=y,
                         theta=theta,
@@ -188,7 +188,7 @@ class MobileBaseSDK:
         if not exc_queue.empty():
             raise exc_queue.get()
 
-    async def goto_async(
+    async def _goto_async(
             self,
             x: float,
             y: float,
@@ -214,6 +214,7 @@ class MobileBaseSDK:
         self._mobility_stub.SendGoTo(req)
 
         tic = time.time()
+        arrived: bool
         while time.time() - tic < timeout:
             arrived = True
             distance_to_goal = self._distance_to_goto_goal()
@@ -224,6 +225,9 @@ class MobileBaseSDK:
             await asyncio.sleep(0.1)
             if arrived:
                 break
+
+        if not arrived and self.lidar.obstacle_detection_status == "OBJECT_DETECTED_STOP":
+            self._logger.warning("Target not reached. Mobile base stopped because of obstacle.")
 
     def _distance_to_goto_goal(self):
         response = self._mobility_stub.DistanceToGoal(Empty())
