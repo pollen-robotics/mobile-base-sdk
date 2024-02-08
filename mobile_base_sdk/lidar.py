@@ -104,7 +104,8 @@ class Lidar:
         return LidarObstacleDetectionEnum.Name(self._stub.GetZuuuSafety(Empty()).obstacle_detection_status.status)
 
     def reset_safety_default_values(self) -> None:
-        """Reset default distances values for:
+        """Reset default distances values for safety detection.
+        Reset values are:
 
         - safety_critical_distance
         - safety_slowdown_distance.
