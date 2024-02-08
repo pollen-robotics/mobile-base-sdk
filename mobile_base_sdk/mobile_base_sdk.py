@@ -248,12 +248,12 @@ class MobileBaseSDK:
         self._set_drive_mode('free_wheel')
 
     def is_on(self) -> bool:
-        """Returns True if the mobile base is not compliant"""
+        """Return True if the mobile base is not compliant."""
         self._drive_mode = self._get_drive_mode().lower()
         return not self._drive_mode == "free_wheel"
 
     def is_off(self) -> bool:
-        """Returns True if the mobile base is compliant"""
+        """Return True if the mobile base is compliant."""
         self._drive_mode = self._get_drive_mode().lower()
         return self._drive_mode == "free_wheel"
 
