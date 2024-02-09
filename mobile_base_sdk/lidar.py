@@ -41,7 +41,7 @@ class Lidar:
         self._safety_enabled = response.safety_on.value
 
     @property
-    def safety_distance(self):
+    def safety_slowdown_distance(self):
         """Safety distance in meters of the mobile base from obstacles.
 
         The mobile base's speed is slowed down if the direction of speed matches the direction of
@@ -49,8 +49,8 @@ class Lidar:
         """
         return self._safety_distance
 
-    @safety_distance.setter
-    def safety_distance(self, value):
+    @safety_slowdown_distance.setter
+    def safety_slowdown_distance(self, value):
         self._stub.SetZuuuSafety(
             LidarSafety(
                 safety_distance=FloatValue(value=value),
@@ -60,7 +60,7 @@ class Lidar:
         self._update_safety_info()
 
     @property
-    def critical_distance(self):
+    def safety_critical_distance(self):
         """Critical distance in meters of the mobile base from obstacles.
 
         The mobile base's speed is changed to 0 if the direction of speed matches the direction of
@@ -70,8 +70,8 @@ class Lidar:
         """
         return self._critical_distance
 
-    @critical_distance.setter
-    def critical_distance(self, value):
+    @safety_critical_distance.setter
+    def safety_critical_distance(self, value):
         self._stub.SetZuuuSafety(
             LidarSafety(
                 safety_distance=FloatValue(value=self._safety_distance),
@@ -102,3 +102,13 @@ class Lidar:
         Can be either NO_OBJECT_DETECTED, OBJECT_DETECTED_SLOWDOWN, OBJECT_DETECTED_STOP or DETECTION_ERROR.
         """
         return LidarObstacleDetectionEnum.Name(self._stub.GetZuuuSafety(Empty()).obstacle_detection_status.status)
+
+    def reset_safety_default_values(self) -> None:
+        """Reset default distances values for safety detection.
+
+        Reset values are:
+        - safety_critical_distance
+        - safety_slowdown_distance.
+        """
+        self.safety_critical_distance = 0.55
+        self.safety_slowdown_distance = 0.7
