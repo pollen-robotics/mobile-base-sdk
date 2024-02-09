@@ -162,7 +162,10 @@ class MobileBaseSDK:
         The tolerance represents the margin along x, y and theta for which we consider
         that the mobile base has arrived its goal.
         """
-        exc_queue: Queue[Exception] = Queue()
+        if self.is_off():
+            raise RuntimeError(("Mobile base is off. Goto not sent."))
+
+        exc_queue: Queue[Exception] = Queue()        
 
         if not timeout:
             # We consider that the max velocity for the mobile base is 0.5 m/s
