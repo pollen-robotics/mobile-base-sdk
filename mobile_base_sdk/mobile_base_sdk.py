@@ -58,7 +58,17 @@ class MobileBaseSDK:
 
     def __repr__(self) -> str:
         """Clean representation of a mobile base."""
-        return f"""<MobileBase host="{self._host}" on={self.is_on()} \n lidar_safety_enabled={self.lidar.safety_enabled} \n battery_voltage={self.battery_voltage}>"""
+        repr_template = (
+            '<MobileBase host="{host}" on={on} \n'
+            " lidar_safety_enabled={lidar_safety_enabled} \n"
+            " battery_voltage={battery_voltage}>"
+        )
+        return repr_template.format(
+            host=self._host,
+            on=self.is_on(),
+            lidar_safety_enabled=self.lidar.safety_enabled,
+            battery_voltage=self.battery_voltage,
+        )
 
     def _get_drive_mode(self):
         mode_id = self._utility_stub.GetZuuuMode(Empty()).mode
