@@ -6,19 +6,22 @@ or the odometry. You can also easily make the mobile base move by setting a goal
 in cartesian coordinates (x, y, theta) or directly send velocities (x_vel, y_vel, theta_vel).
 """
 
-from numpy import round, rad2deg, deg2rad
-import time
 import asyncio
+import time
 from concurrent.futures import ThreadPoolExecutor
-from queue import Queue
 from logging import getLogger
+from queue import Queue
+from typing import Optional
 
 import grpc
 from google.protobuf.empty_pb2 import Empty
-from google.protobuf.wrappers_pb2 import FloatValue, BoolValue
+from google.protobuf.wrappers_pb2 import BoolValue, FloatValue
+from numpy import deg2rad, rad2deg, round
+from reachy2_sdk_api import mobile_base_mobility_pb2 as mob_pb2
+from reachy2_sdk_api import mobile_base_mobility_pb2_grpc as mob_pb2_grpc
+from reachy2_sdk_api import mobile_base_utility_pb2 as util_pb2
+from reachy2_sdk_api import mobile_base_utility_pb2_grpc as util_pb2_grpc
 
-from reachy2_sdk_api import mobile_base_utility_pb2 as util_pb2, mobile_base_utility_pb2_grpc as util_pb2_grpc
-from reachy2_sdk_api import mobile_base_mobility_pb2 as mob_pb2, mobile_base_mobility_pb2_grpc as mob_pb2_grpc
 from .lidar import Lidar
 
 
@@ -40,8 +43,7 @@ class MobileBaseSDK:
         self._logger = getLogger()
         self._host = host
         self._mobile_base_port = mobile_base_port
-        self._grpc_channel = grpc.insecure_channel(
-            f'{self._host}:{self._mobile_base_port}')
+        self._grpc_channel = grpc.insecure_channel(f"{self._host}:{self._mobile_base_port}")
 
         self._utility_stub = util_pb2_grpc.MobileBaseUtilityServiceStub(self._grpc_channel)
         self._mobility_stub = mob_pb2_grpc.MobileBaseMobilityServiceStub(self._grpc_channel)
@@ -57,8 +59,8 @@ class MobileBaseSDK:
 
     def __repr__(self) -> str:
         """Clean representation of a mobile base."""
-        return f'''<MobileBase host="{self._host}" - battery_voltage=
-        {self.battery_voltage} - drive mode={self._drive_mode} - control mode={self._control_mode}>'''
+        return f"""<MobileBase host="{self._host}" - battery_voltage=
+        {self.battery_voltage} - drive mode={self._drive_mode} - control mode={self._control_mode}>"""
 
     def _get_drive_mode(self):
         mode_id = self._utility_stub.GetZuuuMode(Empty()).mode
@@ -78,37 +80,32 @@ class MobileBaseSDK:
         """Return the odometry of the base. x, y are in meters and theta in degree."""
         response = self._utility_stub.GetOdometry(Empty())
         odom = {
-            'x': round(response.x.value, 3),
-            'y': round(response.y.value, 3),
-            'theta': round(rad2deg(response.theta.value), 3),
+            "x": round(response.x.value, 3),
+            "y": round(response.y.value, 3),
+            "theta": round(rad2deg(response.theta.value), 3),
         }
         return odom
 
     def _set_drive_mode(self, mode: str):
         """Set the base's drive mode."""
         all_drive_modes = [mode.lower() for mode in util_pb2.ZuuuModePossiblities.keys()][1:]
-        possible_drive_modes = [mode for mode in all_drive_modes if mode not in ('speed', 'goto')]
+        possible_drive_modes = [mode for mode in all_drive_modes if mode not in ("speed", "goto")]
         if mode in possible_drive_modes:
-            req = util_pb2.ZuuuModeCommand(
-                mode=getattr(util_pb2.ZuuuModePossiblities, mode.upper())
-            )
+            req = util_pb2.ZuuuModeCommand(mode=getattr(util_pb2.ZuuuModePossiblities, mode.upper()))
             self._utility_stub.SetZuuuMode(req)
             self._drive_mode = mode
         else:
-            self._logger.warning(f'Drive mode requested should be in {possible_drive_modes}!')
+            self._logger.warning(f"Drive mode requested should be in {possible_drive_modes}!")
 
     def _set_control_mode(self, mode: str):
         """Set the base's control mode."""
-        possible_control_modes = [
-            mode.lower() for mode in util_pb2.ControlModePossiblities.keys()][1:]
+        possible_control_modes = [mode.lower() for mode in util_pb2.ControlModePossiblities.keys()][1:]
         if mode in possible_control_modes:
-            req = util_pb2.ControlModeCommand(
-                mode=getattr(util_pb2.ControlModePossiblities, mode.upper())
-            )
+            req = util_pb2.ControlModeCommand(mode=getattr(util_pb2.ControlModePossiblities, mode.upper()))
             self._utility_stub.SetControlMode(req)
             self._control_mode = mode
         else:
-            self._logger.warning(f'Control mode requested should be in {possible_control_modes}!')
+            self._logger.warning(f"Control mode requested should be in {possible_control_modes}!")
 
     def reset_odometry(self):
         """Reset the odometry."""
@@ -121,15 +118,15 @@ class MobileBaseSDK:
         The 200ms duration is predifined at the ROS level of the mobile base's code.
         This mode is prefered if the user wants to send speed instructions frequently.
         """
-        if self._drive_mode != 'cmd_vel':
-            self._set_drive_mode('cmd_vel')
+        if self._drive_mode != "cmd_vel":
+            self._set_drive_mode("cmd_vel")
 
-        for vel, value in {'x_vel': x_vel, 'y_vel': y_vel}.items():
+        for vel, value in {"x_vel": x_vel, "y_vel": y_vel}.items():
             if abs(value) > self._max_xy_vel:
-                raise ValueError(f'The asbolute value of {vel} should not be more than {self._max_xy_vel}!')
+                raise ValueError(f"The asbolute value of {vel} should not be more than {self._max_xy_vel}!")
 
         if abs(rot_vel) > self._max_rot_vel:
-            raise ValueError(f'The asbolute value of rot_vel should not be more than {self._max_rot_vel}!')
+            raise ValueError(f"The asbolute value of rot_vel should not be more than {self._max_rot_vel}!")
 
         req = mob_pb2.TargetDirectionCommand(
             direction=mob_pb2.DirectionVector(
@@ -141,17 +138,13 @@ class MobileBaseSDK:
         self._mobility_stub.SendDirection(req)
 
     def goto(
-            self,
-            x: float,
-            y: float,
-            theta: float,
-            timeout: float = None,
-            tolerance: dict = {
-                'delta_x': 0.1,
-                'delta_y': 0.1,
-                'delta_theta': 15,
-                'distance': 0.1
-            }):
+        self,
+        x: float,
+        y: float,
+        theta: float,
+        timeout: Optional[float] = None,
+        tolerance: dict = {"delta_x": 0.1, "delta_y": 0.1, "delta_theta": 15, "distance": 0.1},
+    ):
         """Send target position. x, y are in meters and theta is in degree.
 
         (x, y) will define the position of the mobile base in cartesian space
@@ -165,12 +158,12 @@ class MobileBaseSDK:
         if self.is_off():
             raise RuntimeError(("Mobile base is off. Goto not sent."))
 
-        exc_queue: Queue[Exception] = Queue()        
+        exc_queue: Queue[Exception] = Queue()
 
         if not timeout:
             # We consider that the max velocity for the mobile base is 0.5 m/s
             # timeout is 2*_max_xy_goto / max velocity
-            timeout = 2*self._max_xy_goto / 0.5
+            timeout = 2 * self._max_xy_goto / 0.5
 
         def _wrapped_goto():
             try:
@@ -192,28 +185,24 @@ class MobileBaseSDK:
             raise exc_queue.get()
 
     async def _goto_async(
-            self,
-            x: float,
-            y: float,
-            theta: float,
-            timeout: float,
-            tolerance: dict = {
-                'delta_x': 0.1,
-                'delta_y': 0.1,
-                'delta_theta': 15,
-                'distance': 0.1
-            }):
+        self,
+        x: float,
+        y: float,
+        theta: float,
+        timeout: float,
+        tolerance: dict = {"delta_x": 0.1, "delta_y": 0.1, "delta_theta": 15, "distance": 0.1},
+    ):
         """Async version of the goto method."""
-        for pos, value in {'x': x, 'y': y}.items():
+        for pos, value in {"x": x, "y": y}.items():
             if abs(value) > self._max_xy_goto:
-                raise ValueError(f'The asbolute value of {pos} should not be more than {self._max_xy_goto}!')
+                raise ValueError(f"The asbolute value of {pos} should not be more than {self._max_xy_goto}!")
 
         req = mob_pb2.GoToVector(
             x_goal=FloatValue(value=x),
             y_goal=FloatValue(value=y),
             theta_goal=FloatValue(value=deg2rad(theta)),
         )
-        self._drive_mode = 'go_to'
+        self._drive_mode = "go_to"
         self._mobility_stub.SendGoTo(req)
 
         tic = time.time()
@@ -235,20 +224,20 @@ class MobileBaseSDK:
     def _distance_to_goto_goal(self):
         response = self._mobility_stub.DistanceToGoal(Empty())
         distance = {
-            'delta_x': round(response.delta_x.value, 3),
-            'delta_y': round(response.delta_y.value, 3),
-            'delta_theta': round(rad2deg(response.delta_theta.value), 3),
-            'distance': round(response.distance.value, 3),
+            "delta_x": round(response.delta_x.value, 3),
+            "delta_y": round(response.delta_y.value, 3),
+            "delta_theta": round(rad2deg(response.delta_theta.value), 3),
+            "distance": round(response.distance.value, 3),
         }
         return distance
 
     def turn_on(self) -> None:
         """Stop the mobile base immediately by changing its drive mode to 'brake'."""
-        self._set_drive_mode('brake')
+        self._set_drive_mode("brake")
 
     def turn_off(self) -> None:
         """Set the mobile base in free wheel mode."""
-        self._set_drive_mode('free_wheel')
+        self._set_drive_mode("free_wheel")
 
     def is_on(self) -> bool:
         """Return True if the mobile base is not compliant."""

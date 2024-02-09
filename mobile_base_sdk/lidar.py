@@ -6,15 +6,14 @@ Handles the LIDAR features:
     - set the critical distance
     - enable/disable the safety feature
 """
-from PIL import Image
 import io
 import zlib
 
 from google.protobuf.empty_pb2 import Empty
 from google.protobuf.wrappers_pb2 import BoolValue, FloatValue
-
+from PIL import Image
 from reachy2_sdk_api import mobile_base_lidar_pb2_grpc as lidar_pb2_grpc
-from reachy2_sdk_api.mobile_base_lidar_pb2 import LidarSafety, LidarObstacleDetectionStatus, LidarObstacleDetectionEnum
+from reachy2_sdk_api.mobile_base_lidar_pb2 import LidarObstacleDetectionEnum, LidarObstacleDetectionStatus, LidarSafety
 
 
 class Lidar:
@@ -56,7 +55,8 @@ class Lidar:
                 safety_distance=FloatValue(value=value),
                 critical_distance=FloatValue(value=self._critical_distance),
                 safety_on=BoolValue(value=self._safety_enabled),
-            ))
+            )
+        )
         self._update_safety_info()
 
     @property
@@ -77,7 +77,8 @@ class Lidar:
                 safety_distance=FloatValue(value=self._safety_distance),
                 critical_distance=FloatValue(value=value),
                 safety_on=BoolValue(value=self._safety_enabled),
-            ))
+            )
+        )
         self._update_safety_info()
 
     @property
@@ -92,7 +93,8 @@ class Lidar:
                 safety_distance=FloatValue(value=self._safety_distance),
                 critical_distance=FloatValue(value=self._critical_distance),
                 safety_on=BoolValue(value=value),
-            ))
+            )
+        )
         self._update_safety_info()
 
     @property
