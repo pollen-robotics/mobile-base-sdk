@@ -11,6 +11,8 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from logging import getLogger
 from queue import Queue
+from typing import Optional
+
 
 import grpc
 from google.protobuf.empty_pb2 import Empty
@@ -150,7 +152,7 @@ class MobileBaseSDK:
         x: float,
         y: float,
         theta: float,
-        timeout: float = None,
+        timeout: Optional[float] = None,
         tolerance: dict = {"delta_x": 0.1, "delta_y": 0.1, "delta_theta": 15, "distance": 0.1},
     ):
         """Send target position. x, y are in meters and theta is in degree.
@@ -163,6 +165,9 @@ class MobileBaseSDK:
         The tolerance represents the margin along x, y and theta for which we consider
         that the mobile base has arrived its goal.
         """
+        if self.is_off():
+            raise RuntimeError(("Mobile base is off. Goto not sent."))
+
         exc_queue: Queue[Exception] = Queue()
 
         if not timeout:
