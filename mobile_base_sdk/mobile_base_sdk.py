@@ -13,6 +13,7 @@ from logging import getLogger
 from queue import Queue
 from typing import Optional
 
+
 import grpc
 from google.protobuf.empty_pb2 import Empty
 from google.protobuf.wrappers_pb2 import BoolValue, FloatValue
@@ -59,8 +60,17 @@ class MobileBaseSDK:
 
     def __repr__(self) -> str:
         """Clean representation of a mobile base."""
-        return f"""<MobileBase host="{self._host}" - battery_voltage=
-        {self.battery_voltage} - drive mode={self._drive_mode} - control mode={self._control_mode}>"""
+        repr_template = (
+            '<MobileBase host="{host}" on={on} \n'
+            " lidar_safety_enabled={lidar_safety_enabled} \n"
+            " battery_voltage={battery_voltage}>"
+        )
+        return repr_template.format(
+            host=self._host,
+            on=self.is_on(),
+            lidar_safety_enabled=self.lidar.safety_enabled,
+            battery_voltage=self.battery_voltage,
+        )
 
     def _get_drive_mode(self):
         mode_id = self._utility_stub.GetZuuuMode(Empty()).mode

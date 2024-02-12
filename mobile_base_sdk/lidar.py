@@ -25,6 +25,10 @@ class Lidar:
 
         self._update_safety_info()
 
+    def __repr__(self) -> str:
+        """Clean representation of a Reachy."""
+        return f"""<Lidar safety_enabled={self.safety_enabled}>"""
+
     def get_map(self):
         """Get the current map of the environment."""
         compressed_map = self._stub.GetLidarMap(Empty()).data
